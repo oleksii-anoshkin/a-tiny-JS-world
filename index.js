@@ -19,12 +19,12 @@ class Inhabitant {
     this.legs = legs;
   }
 
-  render() {
-    return INHABITANTS_RENDER_PROPERTIES_KEYS.map((propName, index) => {
-      if (this[propName] !== undefined) {
+  createHtmlForInhabitantCard() {
+    return KEYS_OF_ALL_INHABITANT_PROPERTIES.map((propKey, index) => {
+      if (this[propKey] !== undefined) {
         return index === IMG_PROP_INDEX
-          ? this[propName]
-          : `<${KEY_TAG} class="${KEY_CLASS}">${propName}: <${TEXT_TAG} class="${TEXT_CLASS}">${this[propName]}</${TEXT_TAG}></${KEY_TAG}>`;
+          ? this[propKey]
+          : `<${KEY_TAG} class="${KEY_CLASS}">${propKey}: <${TEXT_TAG} class="${TEXT_CLASS}">${this[propKey]}</${TEXT_TAG}></${KEY_TAG}>`;
       }
     }).join(" ");
   }
@@ -94,21 +94,18 @@ class Catwoman extends Female {
 
 // Animals
 class Animal extends Inhabitant {
-  constructor(name, kind) {
+  constructor(name, kind, saying) {
     super(name, ANIMAL_DATA.species, ANIMAL_DATA.legs);
     this.tail = ANIMAL_DATA.tail;
     this.icon = ANIMAL_DATA.icon;
     this.kind = kind;
+    this.saying = saying;
   }
 }
 
 class Dog extends Animal {
   constructor(name) {
-    super(name, DOGS_DATA.kind);
-  }
-
-  get saying() {
-    return DOGS_DATA.saying;
+    super(name, DOGS_DATA.kind, DOGS_DATA.saying);
   }
 
   get friends() {
@@ -120,11 +117,7 @@ class Dog extends Animal {
 
 class Cat extends Animal {
   constructor(name) {
-    super(name, CATS_DATA.kind);
-  }
-
-  get saying() {
-    return CATS_DATA.saying;
+    super(name, CATS_DATA.kind, CATS_DATA.saying);
   }
 
   get friends() {
@@ -140,7 +133,7 @@ class Cat extends Animal {
 // Inhabitants constants
 const INHABITANTS_NAMES_KEY = "names";
 const INHABITANTS_CLASS_KEY = "className";
-const INHABITANTS_RENDER_PROPERTIES_KEYS = [
+const KEYS_OF_ALL_INHABITANT_PROPERTIES = [
   "icon",
   "name",
   "species",
@@ -212,7 +205,7 @@ const TEXT_TAG = "span";
 const IMG_PROP_INDEX = 0;
 
 // Add inhabitians function
-function addAllInhabitians(namesKey, classKey, ...datas) {
+function addAllInhabitiansToArray(namesKey, classKey, ...datas) {
   return datas
     .map((data) =>
       data[`${namesKey}`].map((name) => new data[`${classKey}`](name))
@@ -221,7 +214,7 @@ function addAllInhabitians(namesKey, classKey, ...datas) {
 }
 
 // Create inhabitians array
-const INHABITANTS = addAllInhabitians(
+const INHABITANTS = addAllInhabitiansToArray(
   INHABITANTS_NAMES_KEY,
   INHABITANTS_CLASS_KEY,
   MALE_DATA,
@@ -233,7 +226,7 @@ const INHABITANTS = addAllInhabitians(
 
 // ======== OUTPUT ========
 INHABITANTS.forEach((inhabitian) =>
-  print(`${inhabitian.render()}`, CARD_CLASS, CARD_TAG)
+  print(`${inhabitian.createHtmlForInhabitantCard()}`, CARD_CLASS, CARD_TAG)
 );
 
 /* Use print(message) for output.
