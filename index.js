@@ -10,190 +10,231 @@ import { print } from "./js/lib.js";
    */
 
 // ======== OBJECTS DEFINITIONS ========
-// Constants
-const INHABITANTS = [];
+// Classes
+// General
+class Inhabitant {
+  constructor(name, species, legs) {
+    this.name = name;
+    this.species = species;
+    this.legs = legs;
+  }
+
+  render() {
+    return INHABITANTS_RENDER_PROPERTIES_KEYS.map((propName, index) => {
+      if (this[propName] !== undefined) {
+        return index === IMG_PROP_INDEX
+          ? this[propName]
+          : `<${KEY_TAG} class="${KEY_CLASS}">${propName}: <${TEXT_TAG} class="${TEXT_CLASS}">${this[propName]}</${TEXT_TAG}></${KEY_TAG}>`;
+      }
+    }).join(" ");
+  }
+}
 
 // Humans
+class Human extends Inhabitant {
+  constructor(name, gender, icon) {
+    super(name, HUMAN_DATA.species, HUMAN_DATA.legs);
+    this.hands = HUMAN_DATA.hands;
+    this.gender = gender;
+    this.icon = icon;
+  }
+
+  get saying() {
+    return HUMAN_DATA.saying;
+  }
+}
+
+class Male extends Human {
+  constructor(name) {
+    super(name, MALE_DATA.gender, MALE_DATA.icon);
+  }
+
+  get friends() {
+    return INHABITANTS.filter(
+      (inhabitant) =>
+        (inhabitant instanceof Dog || inhabitant instanceof Female) &&
+        !(inhabitant instanceof Catwoman)
+    )
+      .map((inhabitant) => inhabitant.name)
+      .join(", ");
+  }
+}
+
+class Female extends Human {
+  constructor(name) {
+    super(name, FEMALE_DATA.gender, FEMALE_DATA.icon);
+  }
+
+  get friends() {
+    return INHABITANTS.filter(
+      (inhabitant) =>
+        (inhabitant instanceof Cat || inhabitant instanceof Male) &&
+        !(inhabitant instanceof Catwoman)
+    )
+      .map((inhabitant) => inhabitant.name)
+      .join(", ");
+  }
+}
+
+class Catwoman extends Female {
+  constructor(name) {
+    super(name);
+  }
+
+  get saying() {
+    return CATS_DATA.saying;
+  }
+
+  get friends() {
+    return INHABITANTS.filter((inhabitant) => inhabitant instanceof Cat)
+      .map((inhabitant) => inhabitant.name)
+      .join(", ");
+  }
+}
+
+// Animals
+class Animal extends Inhabitant {
+  constructor(name, kind) {
+    super(name, ANIMAL_DATA.species, ANIMAL_DATA.legs);
+    this.tail = ANIMAL_DATA.tail;
+    this.icon = ANIMAL_DATA.icon;
+    this.kind = kind;
+  }
+}
+
+class Dog extends Animal {
+  constructor(name) {
+    super(name, DOGS_DATA.kind);
+  }
+
+  get saying() {
+    return DOGS_DATA.saying;
+  }
+
+  get friends() {
+    return INHABITANTS.filter((inhabitant) => inhabitant instanceof Male)
+      .map((inhabitant) => inhabitant.name)
+      .join(", ");
+  }
+}
+
+class Cat extends Animal {
+  constructor(name) {
+    super(name, CATS_DATA.kind);
+  }
+
+  get saying() {
+    return CATS_DATA.saying;
+  }
+
+  get friends() {
+    return INHABITANTS.filter(
+      (inhabitant) =>
+        inhabitant instanceof Female || inhabitant instanceof Catwoman
+    )
+      .map((inhabitant) => inhabitant.name)
+      .join(", ");
+  }
+}
+
+// Inhabitants constants
+const INHABITANTS_NAMES_KEY = "names";
+const INHABITANTS_CLASS_KEY = "className";
+const INHABITANTS_RENDER_PROPERTIES_KEYS = [
+  "icon",
+  "name",
+  "species",
+  "gender",
+  "kind",
+  "legs",
+  "hands",
+  "tail",
+  "saying",
+  "friends",
+];
+
+// Humans constants
 const HUMAN_DATA = {
-  hands: 2,
-  legs: 2,
   species: "human",
+  legs: 2,
+  hands: 2,
+  saying: "Hello!",
 };
 
 const MALE_DATA = {
   gender: "male",
-  name: ["Bob", "Jonatan", "Bill"],
-  friends: ["Marta", "Bob", "None"],
-  phrases: ["Hello world!", "Hi everyone!", "Aloha!"],
+  names: ["Bob", "Jonatan", "Bill"],
   icon: '<span class="material-symbols-outlined">man</span>',
+  className: Male,
 };
 
 const FEMALE_DATA = {
   gender: "female",
-  name: ["Samanta", "Barbara", "Marta"],
-  friends: ["Bill", "Archie", "Leona"],
-  phrases: ["Ops!", "Yap!", "Okey!"],
+  names: ["Samanta", "Barbara", "Marta"],
   icon: '<span class="material-symbols-outlined">woman</span>',
+  className: Female,
 };
 
 const CATWOMAN_DATA = {
-  name: "Julia",
-  friends: "Leona",
+  names: ["Julia"],
+  className: Catwoman,
 };
 
-// Animals
+// Animals constants
 const ANIMAL_DATA = {
-  limbs: 4,
-  tail: 1,
   species: "animal",
+  legs: 4,
+  tail: 1,
   icon: '<span class="material-symbols-outlined">pets</span>',
 };
 
 const DOGS_DATA = {
   kind: "dog",
-  name: ["Archie", "Casper"],
-  friends: ["Barbara", "Colin"],
-  phrase: "Woof!",
+  names: ["Archie", "Casper"],
+  saying: "Woof!",
+  className: Dog,
 };
 
 const CATS_DATA = {
   kind: "cat",
-  name: ["Colin", "Leona"],
-  friends: ["Casper", "Marta"],
-  phrase: "Meow!",
+  names: ["Colin", "Leona"],
+  saying: "Meow!",
+  className: Cat,
 };
 
-// HTML
+// HTML constants
 const CARD_CLASS = "inhabitant__card";
 const CARD_TAG = "div";
 const KEY_TAG = "span";
 const KEY_CLASS = "inhabitant__text";
 const TEXT_CLASS = "normal";
 const TEXT_TAG = "span";
-const IMG_PROP_NAME = "icon";
+const IMG_PROP_INDEX = 0;
 
-// Classes
-// General
-class Inhabitant {
-  constructor(name, friends) {
-    (this.name = name), (this.friends = friends);
-  }
-
-  render() {
-    const propsArr = [];
-
-    for (const prop in this) {
-      prop === IMG_PROP_NAME
-        ? propsArr.unshift(this[prop])
-        : propsArr.push(
-            `<${KEY_TAG} class="${KEY_CLASS}">${prop}: <${TEXT_TAG} class="${TEXT_CLASS}">${this[prop]}</${TEXT_TAG}></${KEY_TAG}>`
-          );
-    }
-
-    return propsArr.join(" ");
-  }
+// Add inhabitians function
+function addAllInhabitians(namesKey, classKey, ...datas) {
+  return datas
+    .map((data) =>
+      data[`${namesKey}`].map((name) => new data[`${classKey}`](name))
+    )
+    .flat();
 }
 
-// Humans
-class Human extends Inhabitant {
-  constructor(name, friends, phrase) {
-    super(name, friends);
-    this.saying = phrase;
-    this.hands = HUMAN_DATA.hands;
-    this.legs = HUMAN_DATA.legs;
-    this.species = HUMAN_DATA.species;
-  }
-}
-
-class Male extends Human {
-  constructor(name, friends, phrase) {
-    super(name, friends, phrase);
-    this.gender = MALE_DATA.gender;
-    this.icon = MALE_DATA.icon;
-  }
-}
-
-class Female extends Human {
-  constructor(name, friends, phrase) {
-    super(name, friends, phrase);
-    this.gender = FEMALE_DATA.gender;
-    this.icon = FEMALE_DATA.icon;
-  }
-}
-
-class Catwoman extends Female {
-  constructor(name, friends, phrase) {
-    super(name, friends, phrase);
-    this.gender = FEMALE_DATA.gender;
-    this.saying = CATS_DATA.phrase;
-  }
-}
-
-// Animals
-class Animal extends Inhabitant {
-  constructor(name, friends) {
-    super(name, friends);
-    this.limbs = ANIMAL_DATA.limbs;
-    this.tail = ANIMAL_DATA.tail;
-    this.species = ANIMAL_DATA.species;
-    this.icon = ANIMAL_DATA.icon;
-  }
-}
-
-class Dog extends Animal {
-  constructor(name, friends) {
-    super(name, friends);
-    this.kind = DOGS_DATA.kind;
-    this.phrase = DOGS_DATA.phrase;
-  }
-}
-
-class Cat extends Animal {
-  constructor(name, friends) {
-    super(name, friends);
-    this.kind = CATS_DATA.kind;
-    this.phrase = CATS_DATA.phrase;
-  }
-}
-
-// Add inhabitians
-function addInhabitians(className, base, dataName, dataFriends, dataPhrases) {
-  for (let i = 0; i < dataName.length; i += 1) {
-    dataPhrases === undefined
-      ? base.push(new className(dataName[i], dataFriends[i]))
-      : base.push(new className(dataName[i], dataFriends[i], dataPhrases[i]));
-  }
-}
-
-// Add male
-addInhabitians(
-  Male,
-  INHABITANTS,
-  MALE_DATA.name,
-  MALE_DATA.friends,
-  MALE_DATA.phrases
+// Create inhabitians array
+const INHABITANTS = addAllInhabitians(
+  INHABITANTS_NAMES_KEY,
+  INHABITANTS_CLASS_KEY,
+  MALE_DATA,
+  FEMALE_DATA,
+  DOGS_DATA,
+  CATS_DATA,
+  CATWOMAN_DATA
 );
-
-// Add female
-addInhabitians(
-  Female,
-  INHABITANTS,
-  FEMALE_DATA.name,
-  FEMALE_DATA.friends,
-  FEMALE_DATA.phrases
-);
-
-// Add dog
-addInhabitians(Dog, INHABITANTS, DOGS_DATA.name, DOGS_DATA.friends);
-
-// Add cat
-addInhabitians(Cat, INHABITANTS, CATS_DATA.name, CATS_DATA.friends);
-
-// Add catwoman
-INHABITANTS.push(new Catwoman(CATWOMAN_DATA.name, CATWOMAN_DATA.friends));
 
 // ======== OUTPUT ========
-INHABITANTS.forEach((obj) => print(`${obj.render()}`, CARD_CLASS, CARD_TAG));
+INHABITANTS.forEach((inhabitian) =>
+  print(`${inhabitian.render()}`, CARD_CLASS, CARD_TAG)
+);
 
 /* Use print(message) for output.
    Default tag for message is <pre>. Use print(message,'div') to change containing element tag.

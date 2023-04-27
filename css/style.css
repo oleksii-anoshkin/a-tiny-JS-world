@@ -57,7 +57,8 @@ footer {
     margin: 8px;
     padding: 12px;
 
-    min-width: 200px;
+    width: 252px;
+    min-height: 224px;
 
     border: 2px solid black;
 }
